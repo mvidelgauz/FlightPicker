@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>FlightColumn.qml</file>
+        <file>FlightInputForm.qml</file>
+        <file>FormField.qml</file>
+        <file>StyledCombo.qml</file>
+        <file>EditableCombo.qml</file>
+        <file>TimeTumbler.qml</file>
+        <file>DatePickerField.qml</file>
+    </qresource>
+</RCC>
