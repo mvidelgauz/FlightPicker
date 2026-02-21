@@ -21,6 +21,7 @@ class ProjectData : public QObject
     Q_PROPERTY(QVariantList seg2 READ seg2 WRITE setSeg2 NOTIFY dataChanged)
     Q_PROPERTY(QVariantList seg3 READ seg3 WRITE setSeg3 NOTIFY dataChanged)
     Q_PROPERTY(QVariantList seg4 READ seg4 WRITE setSeg4 NOTIFY dataChanged)
+    Q_PROPERTY(QVariantList combos READ combos WRITE setCombos NOTIFY dataChanged)
     Q_PROPERTY(QString currentFilePath READ currentFilePath NOTIFY filePathChanged)
     Q_PROPERTY(QString currentFileName READ currentFileName NOTIFY filePathChanged)
     Q_PROPERTY(bool dirty READ dirty WRITE setDirty NOTIFY dirtyChanged)
@@ -35,6 +36,7 @@ public:
     QVariantList seg2() const { return m_seg2; }
     QVariantList seg3() const { return m_seg3; }
     QVariantList seg4() const { return m_seg4; }
+    QVariantList combos() const { return m_combos; }
     QString currentFilePath() const { return m_filePath; }
     bool dirty() const { return m_dirty; }
 
@@ -50,6 +52,7 @@ public:
     void setSeg2(const QVariantList &v) { m_seg2 = v; markDirty(); emit dataChanged(); }
     void setSeg3(const QVariantList &v) { m_seg3 = v; markDirty(); emit dataChanged(); }
     void setSeg4(const QVariantList &v) { m_seg4 = v; markDirty(); emit dataChanged(); }
+    void setCombos(const QVariantList &v) { m_combos = v; markDirty(); emit dataChanged(); }
     void setDirty(bool v) { if (m_dirty != v) { m_dirty = v; emit dirtyChanged(); } }
 
     // ── File operations (callable from QML) ─────────────────────
@@ -59,6 +62,7 @@ public:
         m_airlines.clear();
         m_aircraft.clear();
         m_seg1.clear(); m_seg2.clear(); m_seg3.clear(); m_seg4.clear();
+        m_combos.clear();
         m_filePath.clear();
         m_dirty = false;
         emit dataChanged();
@@ -82,6 +86,7 @@ public:
         m_seg2 = o.value("seg2").toArray().toVariantList();
         m_seg3 = o.value("seg3").toArray().toVariantList();
         m_seg4 = o.value("seg4").toArray().toVariantList();
+        m_combos = o.value("combos").toArray().toVariantList();
 
         m_filePath = path;
         m_dirty = false;
@@ -106,6 +111,7 @@ public:
         o["seg2"] = QJsonArray::fromVariantList(m_seg2);
         o["seg3"] = QJsonArray::fromVariantList(m_seg3);
         o["seg4"] = QJsonArray::fromVariantList(m_seg4);
+        o["combos"] = QJsonArray::fromVariantList(m_combos);
 
         QFile f(path);
         if (!f.open(QIODevice::WriteOnly)) return false;
@@ -170,6 +176,7 @@ private:
     bool m_dirty = false;
     QVariantList m_airlines, m_aircraft;
     QVariantList m_seg1, m_seg2, m_seg3, m_seg4;
+    QVariantList m_combos;
 };
 
 #endif // PROJECTDATA_H

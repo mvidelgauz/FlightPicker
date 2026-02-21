@@ -236,10 +236,108 @@ Window {
         return parts.join("\n");
     }
 
-    // Layover texts (between adjacent columns)
-    property string layover12: calcLayover(col1.selectedFlight, col2.selectedFlight)
-    property string layover23: calcLayover(col2.selectedFlight, col3.selectedFlight)
-    property string layover34: calcLayover(col3.selectedFlight, col4.selectedFlight)
+    // ── Airport city grouping ────────────────────────────────────
+    // Airports in the same city are treated as connected for layover calculation.
+    // Both times are in the same timezone so no adjustment is needed.
+    function airportCity(code) {
+        code = (code || "").toUpperCase();
+        // UAE
+        if (code === "DXB" || code === "DWC" || code === "SHJ") return "DXB";
+        if (code === "AUH") return "AUH";
+        // Tokyo
+        if (code === "NRT" || code === "HND") return "TYO";
+        // Osaka
+        if (code === "KIX" || code === "ITM") return "OSA";
+        // Nagoya
+        if (code === "NGO") return "NGO";
+        // Other Japan
+        if (code === "CTS" || code === "FUK") return code;
+        // Israel
+        if (code === "TLV") return "TLV";
+        return code; // fallback: code itself
+    }
+
+    function sameCity(a, b) {
+        return airportCity(a) === airportCity(b);
+    }
+
+    // ── Smart layover calculation ─────────────────────────────────
+    // Builds a chain of selected flights, skipping empty columns.
+    // Layovers are shown between consecutive flights in the chain
+    // where the arrival airport is in the same city as departure airport.
+    // Each layover "belongs" to the gap between two column indices.
+
+    // Returns an object: { "1-2": "1d\n10h", "1-4": "21d\n2h", ... }
+    // Keys are "leftCol-rightCol" (0-based column indices).
+    property var layovers: {
+        var cols = [col1, col2, col3, col4];
+        var chain = []; // { colIdx, flight }
+        for (var i = 0; i < 4; i++) {
+            var f = cols[i].selectedFlight;
+            if (f && f.depDate && f.depTime && f.arrDate && f.arrTime) {
+                chain.push({ colIdx: i, flight: f });
+            }
+        }
+
+        var result = {};
+        for (var j = 0; j < chain.length - 1; j++) {
+            var left = chain[j];
+            var right = chain[j + 1];
+            // Show layover if arrival and departure are in the same city
+            if (left.flight.arr && right.flight.dep &&
+                sameCity(left.flight.arr, right.flight.dep)) {
+                var text = calcLayover(left.flight, right.flight);
+                if (text !== "") {
+                    result[left.colIdx + "-" + right.colIdx] = text;
+                }
+            }
+        }
+        return result;
+    }
+
+    // Helper to get layover text for a specific gap (between column a and column b)
+    function layoverBetween(a, b) {
+        // Check for direct gap first
+        var key = a + "-" + b;
+        if (layovers[key]) return layovers[key];
+        // Check for any layover that spans across this gap
+        // (e.g., col 0→3 would be shown between cols 0 and 3)
+        for (var k in layovers) {
+            var parts = k.split("-");
+            var left = parseInt(parts[0]);
+            var right = parseInt(parts[1]);
+            // This layover spans from left to right.
+            // Show it in the gap that's closest to the midpoint,
+            // or in the first gap after the left column.
+            if (left < b && right > a && left <= a && right >= b) {
+                return layovers[k];
+            }
+        }
+        return "";
+    }
+
+    // The 3 gap positions between columns (0-1, 1-2, 2-3)
+    property string layover12: {
+        // Check for layovers that should display in gap 0↔1
+        var l = layovers;
+        if (l["0-1"]) return l["0-1"];
+        return "";
+    }
+    property string layover23: {
+        var l = layovers;
+        if (l["1-2"]) return l["1-2"];
+        // A skip from col 0 to col 2: show in gap 1↔2 (midpoint)
+        if (l["0-2"]) return l["0-2"];
+        return "";
+    }
+    property string layover34: {
+        var l = layovers;
+        if (l["2-3"]) return l["2-3"];
+        // Skips: col 1→3 or col 0→3
+        if (l["1-3"]) return l["1-3"];
+        if (l["0-3"]) return l["0-3"];
+        return "";
+    }
 
     function airlineColor(name) {
         if (!darkMode) return theme.accent;
@@ -257,13 +355,50 @@ Window {
         return parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
     }
 
-    property real totalPrice: {
+    // ── Combo pricing ───────────────────────────────────────────
+    // Looks up the current 4-leg selection in project.combos.
+    // Each combo: { "legs": ["EK 2370", "EK 320", "EK 321", "EK 2369"], "price": "$1,254" }
+    // Returns the combo price string if found, or "" if no match.
+    property string comboPrice: {
+        var combos = project.combos;
+        if (!combos || combos.length === 0) return "";
+        var cols = [col1, col2, col3, col4];
+        var selected = [];
+        for (var i = 0; i < 4; i++) {
+            var f = cols[i].selectedFlight;
+            selected.push(f ? (f.flightNo || "").trim() : "");
+        }
+        for (var c = 0; c < combos.length; c++) {
+            var combo = combos[c];
+            var legs = combo.legs;
+            if (!legs || legs.length !== 4) continue;
+            var match = true;
+            for (var k = 0; k < 4; k++) {
+                var comboLeg = ("" + (legs[k] || "")).trim();
+                // Empty combo leg means "any flight" in that slot
+                if (comboLeg === "") continue;
+                if (comboLeg !== selected[k]) { match = false; break; }
+            }
+            if (match) return "" + (combo.price || "");
+        }
+        return "";
+    }
+
+    // Sum of individual per-card prices (the old approach, as fallback)
+    property real perLegPriceSum: {
         var t = 0;
         if (col1.selectedFlight) t += parsePrice(col1.selectedFlight.price);
         if (col2.selectedFlight) t += parsePrice(col2.selectedFlight.price);
         if (col3.selectedFlight) t += parsePrice(col3.selectedFlight.price);
         if (col4.selectedFlight) t += parsePrice(col4.selectedFlight.price);
         return t;
+    }
+
+    // Display price: combo price if found, else per-leg sum, else 0
+    property string displayPrice: {
+        if (comboPrice !== "") return comboPrice;
+        if (perLegPriceSum > 0) return "$" + perLegPriceSum.toFixed(0);
+        return "";
     }
 
     // ── Persistence ─────────────────────────────────────────────
@@ -312,6 +447,7 @@ Window {
         project.seg2 = modelToArray(seg2Model);
         project.seg3 = modelToArray(seg3Model);
         project.seg4 = modelToArray(seg4Model);
+        // combos are kept on project directly — no QML model needed
     }
 
     // Save project to its current file (or trigger Save As if no file yet)
@@ -719,19 +855,19 @@ Window {
                     Layout.preferredHeight: 30
                     radius: theme.borderRadius
                     color: theme.accent
-                    opacity: root.totalPrice > 0 ? 1.0 : 0.35
+                    opacity: root.displayPrice !== "" ? 1.0 : 0.35
 
                     Row {
                         anchors.centerIn: parent; spacing: 5
                         Text {
-                            text: "TOTAL:"
+                            text: root.comboPrice !== "" ? "R/T:" : "TOTAL:"
                             font.pixelSize: 10; font.weight: Font.Bold
                             font.letterSpacing: 1; font.family: theme.fontFamily
                             color: theme.buttonText
                             anchors.verticalCenter: parent.verticalCenter
                         }
                         Text {
-                            text: "$" + root.totalPrice.toFixed(0)
+                            text: root.displayPrice !== "" ? root.displayPrice : "$0"
                             font.pixelSize: 13; font.weight: Font.Bold
                             font.family: theme.fontFamily; color: theme.buttonText
                             anchors.verticalCenter: parent.verticalCenter

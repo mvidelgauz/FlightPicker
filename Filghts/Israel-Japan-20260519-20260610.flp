@@ -1,0 +1,374 @@
+{
+    "aircraft": [
+        "A320neo",
+        "A321",
+        "A321LR",
+        "A321neo",
+        "A330-300",
+        "A330-900neo",
+        "A350-1000",
+        "A350-900",
+        "A380",
+        "A380-800",
+        "B737 MAX 8",
+        "B737 MAX 9",
+        "B737-800",
+        "B777-200LR",
+        "B777-300ER",
+        "B777-9",
+        "B787-10",
+        "B787-9"
+    ],
+    "airlines": [
+        "Air Arabia",
+        "ANA",
+        "El Al",
+        "Emirates",
+        "Etihad",
+        "Etihad Airways",
+        "flydubai",
+        "Israir",
+        "JAL",
+        "Wizz Air Abu Dhabi"
+    ],
+    "combos": [
+        {
+            "legs": [
+                "EK 2370",
+                "EK 320",
+                "EK 321",
+                "EK 2369"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2332"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2369"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2268a"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2268b"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2370",
+                "EK 320",
+                "EK 321",
+                "EK 2332"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2121",
+                "EK 320",
+                "EK 321",
+                "EK 2332"
+            ],
+            "price": "$1,254"
+        },
+        {
+            "legs": [
+                "EK 2364",
+                "EK 320",
+                "EK 321",
+                "EK 2332"
+            ],
+            "price": "$1,265"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 313",
+                "EK 2369"
+            ],
+            "price": "$1,266"
+        },
+        {
+            "legs": [
+                "EK 2364",
+                "EK 320",
+                "EK 313",
+                "EK 2369"
+            ],
+            "price": "$1,266"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2120"
+            ],
+            "price": "$1,275"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 321",
+                "EK 2120"
+            ],
+            "price": "$1,275"
+        },
+        {
+            "legs": [
+                "EK 2471",
+                "EK 318",
+                "EK 321",
+                "EK 2332"
+            ],
+            "price": "$1,322"
+        },
+        {
+            "legs": [
+                "EK 2471",
+                "EK 318",
+                "EK 313",
+                "EK 2268b"
+            ],
+            "price": "$1,324"
+        },
+        {
+            "legs": [
+                "EK 2449",
+                "EK 320",
+                "EK 319",
+                "EK 2120"
+            ],
+            "price": "$1,376"
+        }
+    ],
+    "seg1": [
+        {
+            "aircraft": "B737 MAX 9",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-05-19",
+            "arrTime": "14:45",
+            "dep": "TLV",
+            "depDate": "2026-05-19",
+            "depTime": "10:25",
+            "duration": "3h 20m",
+            "flightNo": "EK 2121",
+            "price": ""
+        },
+        {
+            "aircraft": "B737-800",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-05-19",
+            "arrTime": "15:15",
+            "dep": "TLV",
+            "depDate": "2026-05-19",
+            "depTime": "10:55",
+            "duration": "3h 20m",
+            "flightNo": "EK 2370",
+            "price": ""
+        },
+        {
+            "aircraft": "B737 MAX 8",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-05-19",
+            "arrTime": "18:00",
+            "dep": "TLV",
+            "depDate": "2026-05-19",
+            "depTime": "13:40",
+            "duration": "3h 20m",
+            "flightNo": "EK 2364",
+            "price": ""
+        },
+        {
+            "aircraft": "B737-800",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-05-19",
+            "arrTime": "20:05",
+            "dep": "TLV",
+            "depDate": "2026-05-19",
+            "depTime": "15:50",
+            "duration": "3h 15m",
+            "flightNo": "EK 2449",
+            "price": ""
+        },
+        {
+            "aircraft": "B737 MAX 9",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-05-20",
+            "arrTime": "00:05",
+            "dep": "TLV",
+            "depDate": "2026-05-19",
+            "depTime": "19:45",
+            "duration": "3h 20m",
+            "flightNo": "EK 2471",
+            "price": ""
+        }
+    ],
+    "seg2": [
+        {
+            "aircraft": "B777-300ER",
+            "airline": "Emirates",
+            "arr": "NRT",
+            "arrDate": "2026-05-20",
+            "arrTime": "13:30",
+            "dep": "DXB",
+            "depDate": "2026-05-19",
+            "depTime": "22:30",
+            "duration": "10h 00m",
+            "flightNo": "EK 320",
+            "price": ""
+        },
+        {
+            "aircraft": "A380-800",
+            "airline": "Emirates",
+            "arr": "NRT",
+            "arrDate": "2026-05-20",
+            "arrTime": "17:35",
+            "dep": "DXB",
+            "depDate": "2026-05-20",
+            "depTime": "02:40",
+            "duration": "9h 55m",
+            "flightNo": "EK 318",
+            "price": ""
+        }
+    ],
+    "seg3": [
+        {
+            "aircraft": "B777-300ER",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-06-10",
+            "arrTime": "05:40",
+            "dep": "HND",
+            "depDate": "2026-06-10",
+            "depTime": "00:05",
+            "duration": "10h 35m",
+            "flightNo": "EK 313",
+            "price": ""
+        },
+        {
+            "aircraft": "B777-300ER",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-06-11",
+            "arrTime": "03:05",
+            "dep": "NRT",
+            "depDate": "2026-06-10",
+            "depTime": "21:30",
+            "duration": "10h 35m",
+            "flightNo": "EK 321",
+            "price": ""
+        },
+        {
+            "aircraft": "A380-800",
+            "airline": "Emirates",
+            "arr": "DXB",
+            "arrDate": "2026-06-11",
+            "arrTime": "04:05",
+            "dep": "NRT",
+            "depDate": "2026-06-10",
+            "depTime": "22:30",
+            "duration": "10h 35m",
+            "flightNo": "EK 319",
+            "price": ""
+        }
+    ],
+    "seg4": [
+        {
+            "aircraft": "B737 MAX 8",
+            "airline": "Emirates",
+            "arr": "TLV",
+            "arrDate": "2026-06-11",
+            "arrTime": "07:40",
+            "dep": "DXB",
+            "depDate": "2026-06-11",
+            "depTime": "05:10",
+            "duration": "3h 30m",
+            "flightNo": "EK 2332",
+            "price": ""
+        },
+        {
+            "aircraft": "B737 MAX 9",
+            "airline": "Emirates",
+            "arr": "TLV",
+            "arrDate": "2026-06-11",
+            "arrTime": "08:45",
+            "dep": "DXB",
+            "depDate": "2026-06-11",
+            "depTime": "06:15",
+            "duration": "3h 30m",
+            "flightNo": "EK 2120",
+            "price": ""
+        },
+        {
+            "aircraft": "B737-800",
+            "airline": "Emirates",
+            "arr": "TLV",
+            "arrDate": "2026-06-11",
+            "arrTime": "09:40",
+            "dep": "DXB",
+            "depDate": "2026-06-11",
+            "depTime": "07:10",
+            "duration": "3h 30m",
+            "flightNo": "EK 2369",
+            "price": ""
+        },
+        {
+            "aircraft": "B737 MAX 8",
+            "airline": "Emirates",
+            "arr": "TLV",
+            "arrDate": "2026-06-11",
+            "arrTime": "10:25",
+            "dep": "DXB",
+            "depDate": "2026-06-11",
+            "depTime": "08:00",
+            "duration": "3h 25m",
+            "flightNo": "EK 2268a",
+            "price": ""
+        },
+        {
+            "aircraft": "B737 MAX 8",
+            "airline": "Emirates",
+            "arr": "TLV",
+            "arrDate": "2026-06-11",
+            "arrTime": "11:10",
+            "dep": "DXB",
+            "depDate": "2026-06-11",
+            "depTime": "08:45",
+            "duration": "3h 25m",
+            "flightNo": "EK 2268b",
+            "price": ""
+        }
+    ]
+}
