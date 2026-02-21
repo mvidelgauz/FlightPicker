@@ -220,20 +220,27 @@ Window {
                              parseInt(dt[0]), parseInt(dt[1])).getTime();
         if (isNaN(arrMs) || isNaN(depMs)) return "";
 
-        // Both times are local to the same airport (arr airport = dep airport of next leg)
-        // so no timezone adjustment needed
+        // Both times are local to the same city (same timezone)
         var diffMin = (depMs - arrMs) / 60000;
-        if (diffMin <= 0) return "";
+        var negative = diffMin < 0;
+        var absDiff = Math.abs(diffMin);
+        if (absDiff === 0) return "0m";
 
-        var days = Math.floor(diffMin / (60 * 24));
-        var hours = Math.floor((diffMin % (60 * 24)) / 60);
-        var mins = Math.round(diffMin % 60);
+        var days = Math.floor(absDiff / (60 * 24));
+        var hours = Math.floor((absDiff % (60 * 24)) / 60);
+        var mins = Math.round(absDiff % 60);
 
         var parts = [];
         if (days > 0) parts.push(days + "d");
         if (hours > 0) parts.push(hours + "h");
         if (mins > 0) parts.push(mins + "m");
-        return parts.join("\n");
+        var result = parts.join("\n");
+        return negative ? "−" + result : result;
+    }
+
+    // Check if a layover string represents a negative (impossible) connection
+    function isNegativeLayover(s) {
+        return s.length > 0 && s.charAt(0) === '−';
     }
 
     // ── Airport city grouping ────────────────────────────────────
@@ -241,9 +248,8 @@ Window {
     // Both times are in the same timezone so no adjustment is needed.
     function airportCity(code) {
         code = (code || "").toUpperCase();
-        // UAE
-        if (code === "DXB" || code === "DWC" || code === "SHJ") return "DXB";
-        if (code === "AUH") return "AUH";
+        // UAE — all airports grouped (AUH, DXB, DWC, SHJ)
+        if (code === "DXB" || code === "DWC" || code === "SHJ" || code === "AUH") return "UAE";
         // Tokyo
         if (code === "NRT" || code === "HND") return "TYO";
         // Osaka
@@ -1005,7 +1011,7 @@ Window {
                             text: root.layover12.replace(/\n/g, " ")
                             font.pixelSize: 20; font.family: theme.fontFamily
                             font.weight: Font.DemiBold
-                            color: theme.accent; opacity: 0.85
+                            color: isNegativeLayover(root.layover12) ? "#cc0000" : theme.accent; opacity: 0.85
                             horizontalAlignment: Text.AlignHCenter
                             lineHeight: 1.1
                         }
@@ -1033,7 +1039,7 @@ Window {
                             text: root.layover23.replace(/\n/g, " ")
                             font.pixelSize: 20; font.family: theme.fontFamily
                             font.weight: Font.DemiBold
-                            color: theme.accent; opacity: 0.85
+                            color: isNegativeLayover(root.layover23) ? "#cc0000" : theme.accent; opacity: 0.85
                             horizontalAlignment: Text.AlignHCenter
                             lineHeight: 1.1
                         }
@@ -1061,7 +1067,7 @@ Window {
                             text: root.layover34.replace(/\n/g, " ")
                             font.pixelSize: 20; font.family: theme.fontFamily
                             font.weight: Font.DemiBold
-                            color: theme.accent; opacity: 0.85
+                            color: isNegativeLayover(root.layover34) ? "#cc0000" : theme.accent; opacity: 0.85
                             horizontalAlignment: Text.AlignHCenter
                             lineHeight: 1.1
                         }
@@ -1125,7 +1131,7 @@ Window {
                     text: root.layover12
                     visible: root.layover12 !== ""
                     font.pixelSize: 7; font.family: theme.fontFamily; font.weight: Font.DemiBold
-                    color: theme.accent; horizontalAlignment: Text.AlignHCenter
+                    color: isNegativeLayover(root.layover12) ? "#cc0000" : theme.accent; horizontalAlignment: Text.AlignHCenter
                     lineHeight: 1.1
                 }
 
@@ -1150,7 +1156,7 @@ Window {
                     text: root.layover23
                     visible: root.layover23 !== ""
                     font.pixelSize: 7; font.family: theme.fontFamily; font.weight: Font.DemiBold
-                    color: theme.accent; horizontalAlignment: Text.AlignHCenter
+                    color: isNegativeLayover(root.layover23) ? "#cc0000" : theme.accent; horizontalAlignment: Text.AlignHCenter
                     lineHeight: 1.1
                 }
 
@@ -1175,7 +1181,7 @@ Window {
                     text: root.layover34
                     visible: root.layover34 !== ""
                     font.pixelSize: 7; font.family: theme.fontFamily; font.weight: Font.DemiBold
-                    color: theme.accent; horizontalAlignment: Text.AlignHCenter
+                    color: isNegativeLayover(root.layover34) ? "#cc0000" : theme.accent; horizontalAlignment: Text.AlignHCenter
                     lineHeight: 1.1
                 }
 
