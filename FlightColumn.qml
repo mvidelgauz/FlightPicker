@@ -120,19 +120,32 @@ Item {
                             anchors.topMargin: 3; anchors.bottomMargin: 3
                             spacing: 0
 
+                            // Row 1: year on each side
                             RowLayout {
-                                Layout.fillWidth: true; spacing: 5
+                                Layout.fillWidth: true; spacing: 4
+                                Text { text: model.depDate ? model.depDate.substring(0, 4) : ""; font.pixelSize: 8; font.family: theme.fontFamily; color: theme.textSecondary }
+                                Item { Layout.fillWidth: true }
+                                Text { text: model.arrDate ? model.arrDate.substring(0, 4) : ""; font.pixelSize: 8; font.family: theme.fontFamily; color: theme.textSecondary }
+                            }
+                            // Row 2: bold month-day on sides, airline + flight centered
+                            RowLayout {
+                                Layout.fillWidth: true; spacing: 4
+                                Text {
+                                    text: model.depDate ? model.depDate.substring(5) : ""
+                                    font.pixelSize: 11; font.weight: Font.Bold
+                                    font.family: theme.fontFamily; color: theme.textSecondary
+                                }
+                                Item { Layout.fillWidth: true }
                                 Text { text: model.airline; font.pixelSize: 10; font.weight: Font.DemiBold; font.family: theme.fontFamily; color: root.airlineColor(model.airline) }
                                 Text { text: model.flightNo; font.pixelSize: 11; font.weight: Font.Bold; font.family: theme.fontFamily; color: cardItem.isSelected ? theme.textPrimary : theme.textSecondary }
                                 Item { Layout.fillWidth: true }
-                                Text { text: model.price; font.pixelSize: 13; font.weight: Font.Bold; font.family: theme.fontFamily; color: cardItem.isSelected ? theme.accent : theme.textPrimary }
+                                Text {
+                                    text: model.arrDate ? model.arrDate.substring(5) : ""
+                                    font.pixelSize: 11; font.weight: Font.Bold
+                                    font.family: theme.fontFamily; color: theme.textSecondary
+                                }
                             }
-                            RowLayout {
-                                Layout.fillWidth: true; spacing: 4
-                                Text { text: model.depDate; font.pixelSize: 9; font.family: theme.fontFamily; color: theme.textSecondary }
-                                Item { Layout.fillWidth: true }
-                                Text { text: model.arrDate; font.pixelSize: 9; font.family: theme.fontFamily; color: theme.textSecondary }
-                            }
+                            // Row 3: times + duration
                             RowLayout {
                                 Layout.fillWidth: true; spacing: 3
                                 Text { text: model.depTime; font.pixelSize: 17; font.weight: Font.Bold; font.family: theme.fontFamily; color: theme.textPrimary }
@@ -165,7 +178,13 @@ Item {
                                 }
                                 Text { text: model.arrTime; font.pixelSize: 17; font.weight: Font.Bold; font.family: theme.fontFamily; color: theme.textPrimary }
                             }
-                            Text { text: model.aircraft; font.pixelSize: 8; font.family: theme.fontFamily; color: theme.textSecondary; opacity: 0.7 }
+                            // Row 4: aircraft + price
+                            RowLayout {
+                                Layout.fillWidth: true; spacing: 4
+                                Text { text: model.aircraft; font.pixelSize: 8; font.family: theme.fontFamily; color: theme.textSecondary; opacity: 0.7 }
+                                Item { Layout.fillWidth: true }
+                                Text { text: model.price; font.pixelSize: 11; font.weight: Font.Bold; font.family: theme.fontFamily; color: cardItem.isSelected ? theme.accent : theme.textPrimary; visible: model.price !== "" }
+                            }
                         }
                     }
 
