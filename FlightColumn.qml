@@ -6,9 +6,11 @@ Item {
     id: columnRoot
     property int columnIndex: 0
     property var model: null
+    property bool columnDisabled: false
 
     // Which item index is at the highlight row
     property int selectedIndex: {
+        if (columnDisabled) return -1;
         if (!model || model.count === 0) return -1;
         // The highlight row's center in flickable coordinates
         var highlightCenter = flick.contentY + root.highlightRow * root.cellHeight + root.cellHeight / 2;
@@ -18,6 +20,7 @@ Item {
     }
 
     property var selectedFlight: {
+        if (columnDisabled) return null;
         var idx = selectedIndex;
         if (idx < 0 || !model || idx >= model.count) return null;
         var item = model.get(idx);
@@ -64,6 +67,7 @@ Item {
         id: flick
         anchors.fill: parent
         clip: true
+        visible: !columnRoot.columnDisabled
         contentWidth: width
         contentHeight: columnRoot.totalContentHeight
         boundsBehavior: Flickable.StopAtBounds
@@ -231,6 +235,53 @@ Item {
 
             // Bottom spacer
             Item { width: 1; height: columnRoot.bottomPadding }
+        }
+    }
+
+    // ── Placeholder when column is disabled (direct flight, no stopover) ──
+    Rectangle {
+        anchors.fill: parent
+        visible: columnRoot.columnDisabled
+        color: "transparent"
+
+        // A soft placeholder card at the highlight row position
+        Rectangle {
+            x: 2
+            y: root.highlightRow * root.cellHeight + 2
+            width: parent.width - 4
+            height: root.cellHeight - 4
+            radius: 6
+            color: theme.cardBg
+            border.color: theme.divider
+            border.width: 1
+            opacity: 0.5
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 4
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "✈"
+                    font.pixelSize: 28
+                    opacity: 0.25
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "Direct flight"
+                    font.pixelSize: 11
+                    font.family: theme.fontFamily
+                    color: theme.textSecondary
+                    opacity: 0.5
+                }
+                Text {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    text: "No stopover"
+                    font.pixelSize: 9
+                    font.family: theme.fontFamily
+                    color: theme.textSecondary
+                    opacity: 0.4
+                }
+            }
         }
     }
 }

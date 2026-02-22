@@ -277,8 +277,10 @@ Window {
     // Keys are "leftCol-rightCol" (0-based column indices).
     property var layovers: {
         var cols = [col1, col2, col3, col4];
+        var disabled = [false, col2Disabled, col3Disabled, false]; // col1 and col4 always enabled
         var chain = []; // { colIdx, flight }
         for (var i = 0; i < 4; i++) {
+            if (disabled[i]) continue; // skip disabled columns
             var f = cols[i].selectedFlight;
             if (f && f.depDate && f.depTime && f.arrDate && f.arrTime) {
                 chain.push({ colIdx: i, flight: f });
@@ -361,18 +363,95 @@ Window {
         return parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
     }
 
-    // ── Combo pricing ───────────────────────────────────────────
+    // ── Column auto-hide ─────────────────────────────────────
+    // If col1's selected flight arrives in Japan → col2 is unnecessary (direct outbound)
+    // If col4's selected flight departs from Japan → col3 is unnecessary (direct return)
+    function isJapanAirport(code) {
+        var c = airportCity((code || "").toUpperCase());
+        return c === "TYO" || c === "OSA" || c === "NGO" || c === "CTS" || c === "FUK";
+    }
+
+    property bool col2Disabled: {
+        var f = col1.selectedFlight;
+        return f ? isJapanAirport(f.arr) : false;
+    }
+    property bool col3Disabled: {
+        var f = col4.selectedFlight;
+        return f ? isJapanAirport(f.dep) : false;
+    }
+
+    // ── Dynamic column headers ────────────────────────────────
+    property string col1Header: {
+        var f = col1.selectedFlight;
+        return f ? ((f.dep || "?") + " → " + (f.arr || "?")) : "TLV → ...";
+    }
+    property string col2Header: {
+        var f = col2.selectedFlight;
+        return f ? ((f.dep || "?") + " → " + (f.arr || "?")) : "... → Japan";
+    }
+    property string col3Header: {
+        var f = col3.selectedFlight;
+        return f ? ((f.dep || "?") + " → " + (f.arr || "?")) : "Japan → ...";
+    }
+    property string col4Header: {
+        var f = col4.selectedFlight;
+        return f ? ((f.dep || "?") + " → " + (f.arr || "?")) : "... → TLV";
+    }
+
     // Looks up the current 4-leg selection in project.combos.
-    // Each combo: { "legs": ["EK 2370", "EK 320", "EK 321", "EK 2369"], "price": "$1,254" }
+    // Each combo: { "legs": [leg1, leg2, leg3, leg4], "price": "$1,254" }
+    // Each leg can be:
+    //   - a string like "EK 320" (matches by flight number only — legacy)
+    //   - an object { "fn": "EK 320", "dep": "2026-05-19", "dt": "22:30" }
+    //     (matches by flight number + departure date + departure time)
+    //   - "" or null (wildcard — matches any flight in that slot)
     // Returns the combo price string if found, or "" if no match.
+
+    function flightKey(f) {
+        // Build a unique key from a selected flight
+        if (!f) return "";
+        return (f.flightNo || "").trim() + "|" + (f.depDate || "") + "|" + (f.depTime || "");
+    }
+
+    function comboLegKey(leg) {
+        // Build key from a combo leg definition
+        if (!leg) return "";
+        if (typeof leg === "string") return leg.trim(); // legacy: just flightNo
+        // Object format
+        var fn = ("" + (leg.fn || leg.flightNo || "")).trim();
+        var dep = "" + (leg.dep || leg.depDate || "");
+        var dt = "" + (leg.dt || leg.depTime || "");
+        if (dep === "" && dt === "") return fn; // if no date/time, match by flightNo only
+        return fn + "|" + dep + "|" + dt;
+    }
+
+    function matchesComboLeg(selectedFlight, comboLeg) {
+        if (!comboLeg) return true; // null/undefined = wildcard
+        var legStr = typeof comboLeg === "string" ? comboLeg.trim() : "";
+        if (typeof comboLeg === "string") {
+            if (legStr === "") return true; // empty string = wildcard
+            // Legacy string format: match flightNo only
+            return (selectedFlight.flightNo || "").trim() === legStr;
+        }
+        // Object format: match all specified fields
+        var fn = ("" + (comboLeg.fn || comboLeg.flightNo || "")).trim();
+        if (fn === "") return true; // no flight number = wildcard
+        if ((selectedFlight.flightNo || "").trim() !== fn) return false;
+        var dep = "" + (comboLeg.dep || comboLeg.depDate || "");
+        if (dep !== "" && (selectedFlight.depDate || "") !== dep) return false;
+        var dt = "" + (comboLeg.dt || comboLeg.depTime || "");
+        if (dt !== "" && (selectedFlight.depTime || "") !== dt) return false;
+        return true;
+    }
+
     property string comboPrice: {
         var combos = project.combos;
         if (!combos || combos.length === 0) return "";
         var cols = [col1, col2, col3, col4];
-        var selected = [];
+        var disabled = [false, col2Disabled, col3Disabled, false];
+        var flights = [];
         for (var i = 0; i < 4; i++) {
-            var f = cols[i].selectedFlight;
-            selected.push(f ? (f.flightNo || "").trim() : "");
+            flights.push(disabled[i] ? null : cols[i].selectedFlight);
         }
         for (var c = 0; c < combos.length; c++) {
             var combo = combos[c];
@@ -380,10 +459,14 @@ Window {
             if (!legs || legs.length !== 4) continue;
             var match = true;
             for (var k = 0; k < 4; k++) {
-                var comboLeg = ("" + (legs[k] || "")).trim();
-                // Empty combo leg means "any flight" in that slot
-                if (comboLeg === "") continue;
-                if (comboLeg !== selected[k]) { match = false; break; }
+                if (!flights[k]) {
+                    // No flight selected (or disabled column)
+                    var legVal = legs[k];
+                    var isEmpty = !legVal || (typeof legVal === "string" && legVal.trim() === "");
+                    if (!isEmpty) { match = false; break; }
+                } else if (!matchesComboLeg(flights[k], legs[k])) {
+                    match = false; break;
+                }
             }
             if (match) return "" + (combo.price || "");
         }
@@ -394,8 +477,8 @@ Window {
     property real perLegPriceSum: {
         var t = 0;
         if (col1.selectedFlight) t += parsePrice(col1.selectedFlight.price);
-        if (col2.selectedFlight) t += parsePrice(col2.selectedFlight.price);
-        if (col3.selectedFlight) t += parsePrice(col3.selectedFlight.price);
+        if (!col2Disabled && col2.selectedFlight) t += parsePrice(col2.selectedFlight.price);
+        if (!col3Disabled && col3.selectedFlight) t += parsePrice(col3.selectedFlight.price);
         if (col4.selectedFlight) t += parsePrice(col4.selectedFlight.price);
         return t;
     }
@@ -925,23 +1008,31 @@ Window {
                 anchors.fill: parent; anchors.leftMargin: 12; anchors.rightMargin: 12; spacing: 8
                 Repeater {
                     model: [
-                        { label: "① TLV → UAE",  sub: "Outbound Leg 1" },
-                        { label: "② UAE → Japan", sub: "Outbound Leg 2" },
-                        { label: "③ Japan → UAE", sub: "Return Leg 1" },
-                        { label: "④ UAE → TLV",   sub: "Return Leg 2" }
+                        { sub: "Outbound Leg 1", canSkip: false },
+                        { sub: "Outbound Leg 2", canSkip: true },
+                        { sub: "Return Leg 1",   canSkip: true },
+                        { sub: "Return Leg 2",   canSkip: false }
                     ]
                     Rectangle {
                         Layout.fillWidth: true; Layout.fillHeight: true; color: "transparent"
+                        property bool isDisabled: (index === 1 && root.col2Disabled) || (index === 2 && root.col3Disabled)
+                        property string dynLabel: index === 0 ? root.col1Header : (index === 1 ? root.col2Header : (index === 2 ? root.col3Header : root.col4Header))
                         Column {
                             anchors.centerIn: parent; spacing: 1
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter; text: modelData.label
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: "①②③④".charAt(index) + " " + dynLabel
                                 font.pixelSize: 12; font.weight: Font.DemiBold
-                                font.family: theme.fontFamily; color: theme.accent
+                                font.family: theme.fontFamily
+                                color: isDisabled ? theme.textSecondary : theme.accent
+                                opacity: isDisabled ? 0.4 : 1.0
+                                font.strikeout: isDisabled
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter; text: modelData.sub
-                                font.pixelSize: 9; font.family: theme.fontFamily; color: theme.textSecondary
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData.sub
+                                font.pixelSize: 9; font.family: theme.fontFamily
+                                color: theme.textSecondary
                             }
                         }
                     }
@@ -1017,7 +1108,7 @@ Window {
                         }
                     }
                 }
-                FlightColumn { id: col2; Layout.fillWidth: true; Layout.fillHeight: true; model: seg2Model; columnIndex: 1 }
+                FlightColumn { id: col2; Layout.fillWidth: true; Layout.fillHeight: true; model: seg2Model; columnIndex: 1; columnDisabled: root.col2Disabled }
                 // Layover 2→3
                 Item {
                     Layout.preferredWidth: 34; Layout.fillHeight: true
@@ -1045,7 +1136,7 @@ Window {
                         }
                     }
                 }
-                FlightColumn { id: col3; Layout.fillWidth: true; Layout.fillHeight: true; model: seg3Model; columnIndex: 2 }
+                FlightColumn { id: col3; Layout.fillWidth: true; Layout.fillHeight: true; model: seg3Model; columnIndex: 2; columnDisabled: root.col3Disabled }
                 // Layover 3→4
                 Item {
                     Layout.preferredWidth: 34; Layout.fillHeight: true
@@ -1213,7 +1304,7 @@ Window {
                 FlightInputForm {
                     Layout.fillWidth: true; Layout.fillHeight: true
                     segmentDepAirports: ["TLV"]
-                    segmentArrAirports: ["AUH", "DXB", "DWC", "SHJ"]
+                    segmentArrAirports: ["AUH", "DXB", "DWC", "SHJ", "NRT", "HND", "KIX", "NGO", "CTS", "FUK", "ITM"]
                     defaultDepIdx: 0; defaultArrIdx: 0
                     onAddFlight: function(d) { seg1Model.append(d); saveAll(); }
                 }
@@ -1236,7 +1327,7 @@ Window {
                 Rectangle { Layout.preferredWidth: 1; Layout.fillHeight: true; color: theme.divider; opacity: 0.5 }
                 FlightInputForm {
                     Layout.fillWidth: true; Layout.fillHeight: true
-                    segmentDepAirports: ["AUH", "DXB", "DWC", "SHJ"]
+                    segmentDepAirports: ["AUH", "DXB", "DWC", "SHJ", "NRT", "HND", "KIX", "NGO", "CTS", "FUK", "ITM"]
                     segmentArrAirports: ["TLV"]
                     defaultDepIdx: 0; defaultArrIdx: 0
                     onAddFlight: function(d) { seg4Model.append(d); saveAll(); }
